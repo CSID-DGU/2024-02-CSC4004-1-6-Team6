@@ -1,5 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
+# Create your models here.
+
+# 현재 작성된 모델 목록
+# 1) 일기 모델
+# 2) 문장 별 감정 모델
+# 3) 일기 별 감정 모델
+# 4) 유저 주간 감정 모델
+# 5) 유저 월간 감정 모델
+
 
 # 일기 모델
 class Diary(models.Model):

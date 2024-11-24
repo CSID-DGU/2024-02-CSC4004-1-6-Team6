@@ -1,9 +1,18 @@
 import math
 from datetime import timedelta, datetime
+from api.twilio_api.models import SentenceEmotion, DiaryEmotion, WeeklyEmotion, MonthlyEmotion
+# models.py에 작성된 class 들은 동기화 하지 않은 상태라 현재 참조할 수 없는 상태 입니다. 어떻게 될지 몰라 작성만 해 두었습니다.
 
-from datatype import SentenceEmotion, DiaryEmotion, WeeklyEmotion, MonthlyEmotion
+# 현재 작성된 감정 처리 관련 함수들
+# 1) 대표 감정 포인트 설정
+# 2) 일기를 받아 일기의 감정 평균 치를 계산 하는 함수
+# 3) 감정 수치를 받아 평균 감정과 가장 가까운 감정 포인트 3개를 반환 하는 함수
+# 4) 일기를 받아 감정 평균과 가장 가까운 기준 감정 3개를 저장 하는 함수
+# 5) 유저 일주일 치 감정 계산
+# 6) 유저 한 달 치 감정 계산
 
-# 기준 감정, 추후 세세하게 감정을 추가 해도 될 거 같습니다. 이 방식이 채택된다면 감정 이모티콘이 많이 필요하겠지만
+
+# 기준 감정, 추후 세세하게 감정을 추가 해도 될 거 같 습니다. 이 방식이 채택 된다면 감정 이모티콘이 많이 필요 하겠지 만
 emotion_point = [
     (0, 3, "흥분"),
     (3, 3, "신남"),
@@ -15,7 +24,7 @@ emotion_point = [
     (-3, 3, "좌절/짜증/분노")
 ]
 
-# 일기를 받아 감정 평균 계산
+# 일기를 받아 일기의 감정 평균 치를 계산 하는 함수
 def calculate_average_emotions(diary):
     emotions = SentenceEmotion.objects.filter(diary=diary)
 
@@ -32,7 +41,7 @@ def calculate_average_emotions(diary):
 
     return average_arousal, average_valence
 
-# 평균 감정과 가장 가까운 기준점 3개 반환하는 함수
+# 감정 수치를 받아 평균 감정과 가장 가까운 감정 포인트 3개를 반환 하는 함수
 def find_emotion(arousal, valence, emotion_point=emotion_point):
     distances = []
     for x, y, emotion in emotion_point:
@@ -42,7 +51,7 @@ def find_emotion(arousal, valence, emotion_point=emotion_point):
     # 가장 가까운 3개 반환
     return [emotion for _, emotion in distances[:3]]
 
-# 일기를 받아 감정 평균과 가장 가까운 기준 감정 3개를 저장하는 함수
+# 일기를 받아 감정 평균과 가장 가까운 기준 감정 3개를 저장 하는 함수
 def process_diary_emotion(diary):
     average_arousal, average_valence = calculate_average_emotions(diary)
     closest_emotions = find_emotion(average_arousal, average_valence, emotion_point)
@@ -90,6 +99,7 @@ def calculate_weekly_emotions(user):
         }
     )
 
+# 유저의 한달치 감정 데이터를 통해 월간 감정 계산
 def calculate_monthly_emotions(user, year, month):
     diary_emotions = DiaryEmotion.objects.filter(
         diary__user=user,
