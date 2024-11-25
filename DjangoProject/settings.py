@@ -36,6 +36,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'backend_API',
+    'data_processing',
+    'emotion_analysis',
+    'GPT_API',
+    'user_data'
 ]
 
 MIDDLEWARE = [
