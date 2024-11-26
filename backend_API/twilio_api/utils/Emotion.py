@@ -1,6 +1,6 @@
 import math
 from datetime import timedelta, datetime
-from api.twilio_api.models import SentenceEmotion, DiaryEmotion, WeeklyEmotion, MonthlyEmotion
+from backend_API.twilio_api.models import SentenceEmotion, DiaryEmotion, WeeklyEmotion, MonthlyEmotion
 # models.py에 작성된 class 들은 동기화 하지 않은 상태라 현재 참조할 수 없는 상태 입니다. 어떻게 될지 몰라 작성만 해 두었습니다.
 
 # 현재 작성된 감정 처리 관련 함수들

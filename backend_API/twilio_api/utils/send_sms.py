@@ -3,7 +3,7 @@ import django
 import random
 from twilio.rest import Client # twilio 라이브러리
 from dotenv import load_dotenv
-from api.twilio_api.models import WeeklyEmotion
+from backend_API.twilio_api.models import WeeklyEmotion
 from django.core.cache import cache
 
 # 감정 상태가 위험 상태일 때 사용자에게 기관 연락처를 알려주고 연락을 권유함
