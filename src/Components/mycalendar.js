@@ -4,7 +4,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { Line } from "react-chartjs-2"; // Chart.js를 사용한 라인 차트
-import "C:/Program Files/OSS-Project/react-calendar/src/mycalendar.css";
+import "C:/Program Files/OSS-Project/react-calendar/src/Styles/mycalendar.css";
 
 const MyCalendar = () => {
   const navigate = useNavigate(); // useNavigate 훅 사용
@@ -17,7 +17,7 @@ const MyCalendar = () => {
   const [emotionRecords, setEmotionRecords] = useState([]); // 감정 분석 기록
   const [formattedSelectedDate, setFormattedSelectedDate] = useState(""); // 날짜 텍스트 저장
   const [emotionGraphData, setEmotionGraphData] = useState([]); // 감정 그래프 데이터 상태
-
+  
   // 사용자 정보 로드
   useEffect(() => {
     async function fetchUserInfo() {
@@ -52,6 +52,10 @@ const MyCalendar = () => {
     } catch (error) {
       console.error("Error logging out:", error);
     }
+  };
+
+  const handleMusicRecommendation = () => {
+    navigate("/recommendations"); // 음악 추천 페이지로 이동
   };
 
   const handlePrev = () => {
@@ -234,13 +238,13 @@ const MyCalendar = () => {
               )}
             </div>
 
-            {/* 컨텐츠 추천 버튼*/}
+            {/*음악 추천 버튼*/}
             <div className="popup-content-recommend-button">
               <button
                 className="recommend-button"
                 onClick={() => console.log("Content Recommendation Clicked")}
               >
-              컨텐츠 추천
+              음악 추천
                </button>
             </div>
           </div>
