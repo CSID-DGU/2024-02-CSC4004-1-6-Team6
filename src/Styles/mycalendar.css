@@ -1,0 +1,236 @@
+/* === 전체 페이지 및 기본 스타일 === */
+
+/* 캘린더 전체 컨테이너 */
+.calendar-container {
+    width: 90%;
+    max-width: 1600px;
+    height: 890px;
+    margin: 70px auto; /* 중앙 정렬 */
+    padding: 20px;
+    background-color: #e0dacc;
+    box-shadow: 20px 20px 10px 5px rgba(0, 0, 0, 0.25);
+    border-radius: 15px;
+    font-family: "Cafe24 Oneprettynight OTF", sans-serif;
+  }
+  
+  /* 전체 페이지 스타일 */
+  body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    background: #676d63; /* 기본 배경색 */
+  }
+  
+  .App {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* 상단에서 시작 */
+    min-height: 100vh;
+    position: relative;
+  }
+  
+  /* === 상단 바 (로그인/로그아웃) === */
+  
+  .top-bar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10; /* 캘린더 위에 표시 */
+  }
+  
+  .profile-img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #676d63;
+  }
+  
+  .logout-btn {
+    background: #676d63;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .logout-btn:hover {
+    background: #4a4f44;
+  }
+  
+  /* === 네비게이션 (이전/다음 버튼 및 월 라벨) === */
+  
+  .nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .prev-btn,
+  .next-btn {
+    background-color: #2c3e50;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .prev-btn:hover,
+  .next-btn:hover {
+    background-color: #34495e;
+  }
+  
+  .month-label {
+    font-size: 24px;
+    color: #656c63;
+    text-transform: capitalize;
+  }
+  
+  /* === FullCalendar 스타일 === */
+  
+  .fc-col-header-cell {
+    background-color: #676d63; /* 배경색 설정 */
+    color: #e0dacc;
+    font-size: 29px;
+    font-family: "Cafe24 Oneprettynight OTF";
+    font-weight: 400;
+  }
+  
+  .fc .fc-daygrid-day {
+    text-align: center;
+    border: 1px solid #dcdcdc;
+  }
+  
+  .fc .fc-daygrid-day:hover {
+    background-color: #f4f4f4;
+  }
+  
+  .fc .fc-day-today {
+    background-color: #f8e1d9;
+  }
+  
+  /* === 팝업 오버레이 및 컨테이너 === */
+  
+  .popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    box-shadow: 12px 12px 10px 0px rgba(0, 0, 0, 0.25);
+    border-radius: 0px 0px 44px 44px;
+    width: 1500px;
+    height: 890px;
+    z-index: 1000; /* 팝업을 배경 위로 */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+  }
+  
+  /* 팝업 닫기 버튼 */
+  .popup-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 1001;
+    transition: color 0.3s ease;
+  }
+  
+  .popup-close-btn:hover {
+    color: #676d63;
+  }
+  
+  /* === 팝업 내부 텍스트 및 이모지 === */
+  
+  /* 감정 기록 스타일 */
+  .popup-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* 기록 간의 간격 추가 */
+    margin-top: 20px;
+  }
+  
+  .emotion-record {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    gap: 15px; /* 이모지와 텍스트 간 간격 */
+  }
+  
+  .emotion-emoji {
+    font-size: 24px; /* 이모지 크기 */
+    flex-shrink: 0; /* 이모지가 줄어들지 않도록 */
+  }
+  
+  .emotion-title {
+    font-weight: bold;
+    flex: 1; /* 제목이 넓은 공간 차지 */
+    text-align: left; /* 왼쪽 정렬 */
+    color: #31362e;
+  }
+  
+  .emotion-time {
+    color: #666;
+    font-size: 14px;
+    text-align: right; /* 시간 오른쪽 정렬 */
+  }
+  
+  /* 팝업 컨텐츠 추천 버튼 */
+  .popup-content-recommend-button {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 20px;
+  }
+  
+  .recommend-button {
+    background-color: #676d63;
+    color: #fff;
+    font-size: 16px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.25);
+    transition: background-color 0.3s ease;
+  }
+  
+  .recommend-button:hover {
+    background-color: #4a4f44;
+  }
+  
