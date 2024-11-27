@@ -1,0 +1,115 @@
+/* 배경 */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: 'Cafe24 Oneprettynight OTF', sans-serif;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 팝업 */
+.login-popup {
+    width: 400px;
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 프로필 이미지 */
+.profile-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile-image {
+    width: 60px; /* 프로필 이미지 크기 */
+    height: 60px;
+    border-radius: 50%; /* 원형으로 만들기 */
+    object-fit: cover; /* 이미지 비율 유지 */
+    border: 2px solid #D9D9D9;
+}
+
+/* Google 로그인 버튼 */
+.google-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #F5F5F5;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 15px;
+    font-size: 16px;
+    color: #656C63;
+    cursor: pointer;
+    gap: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.google-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* 구분선 */
+.separator {
+    font-size: 14px;
+    color: #999999;
+    margin: 10px 0;
+}
+
+/* 로그인 입력폼 */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    border: 1px solid #CCCCCC;
+    border-radius: 8px;
+    padding: 8px;
+    background-color: #FFFFFF;
+}
+
+.input-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+.input-field {
+    border: none;
+    flex-grow: 1;
+    font-size: 14px;
+    color: #333333;
+    outline: none;
+}
+
+/* 로그인 버튼 */
+.login-button {
+    background-color: #656C63;
+    border: none;
+    color: #FFFFFF;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.login-button:hover {
+    background-color: #4A4F47;
+}

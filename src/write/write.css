@@ -1,0 +1,83 @@
+/* 배경 */
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: 'Cafe24 Oneprettynight OTF', sans-serif;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 팝업 */
+.diary-popup {
+  width: 960px;
+  height: 620px;
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.3);
+  padding: 20px 40px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 헤더 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.save-button {
+  background-color: rgba(224, 218, 204, 0.6);
+  border-radius: 12px;
+  border: 1px solid #656C63;
+  padding: 6px 18px;
+  font-size: 16px;
+  color: #656C63;
+  cursor: pointer;
+}
+
+.diary-title {
+  font-size: 28px;
+  color: #656C63;
+  text-align: center;
+  flex-grow: 1;
+  margin: 0 20px;
+}
+
+.close-button {
+  width: 36px;
+  height: 36px;
+  background: url('close-icon.png') no-repeat center;
+  background-size: cover;
+  border: none;
+  cursor: pointer;
+}
+
+/* 본문 내용 */
+.diary-content {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #33362E;
+  margin-bottom: 20px;
+}
+
+/* 줄 스타일 */
+.diary-lines {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.line {
+  width: 100%;
+  height: 1px;
+  border-bottom: 1px solid #656C63;
+}
