@@ -175,12 +175,28 @@ def callback(request):
 
 def map_emotion_to_features(emotion_data):
     """
-    감정 데이터를 Spotify 오디오 특성 값으로 매핑하는 함수
+    감정 데이터를 Spotify 오디오 특성 값으로 매핑
+    :param emotion_data: {"happiness": 30, "sadness": 20, "anger": 10, ...} (백분율 값)
+    :return: {"valence": 0.6, "energy": 0.7, "danceability": 0.5, ...}
     """
+    # 0~1로 변환
+    happiness = emotion_data.get("happiness", 0) / 100
+    sadness = emotion_data.get("sadness", 0) / 100
+    anger = emotion_data.get("anger", 0) / 100
+    excitement = emotion_data.get("excitement", 0) / 100
+    calmness = emotion_data.get("calmness", 0) / 100
+    fear = emotion_data.get("fear", 0) / 100
+    love = emotion_data.get("love", 0) / 100
+    surprise = emotion_data.get("surprise", 0) / 100
+
+    # Spotify 특성 값 매핑
     return {
-        "valence": max(0, emotion_data.get("happiness", 0) / 100 - emotion_data.get("sadness", 0) / 100),
-        "energy": min(1, (emotion_data.get("anger", 0) + emotion_data.get("excitement", 0)) / 100),
-        "danceability": emotion_data.get("excitement", 0) / 100
+        "valence": max(0, happiness - sadness + love),
+        "energy": min(1, anger + excitement),
+        "danceability": min(1, excitement + love),
+        "acousticness": calmness,
+        "liveness": min(1, fear + surprise),
+        "tempo": 120 + (surprise * 40 - calmness * 20)  # 템포는 기본값 120에 조정
     }
 
 def recommend_tracks(request):
@@ -192,26 +208,35 @@ def recommend_tracks(request):
         "happiness": int(request.GET.get('happiness', 0)),
         "sadness": int(request.GET.get('sadness', 0)),
         "anger": int(request.GET.get('anger', 0)),
-        "excitement": int(request.GET.get('excitement', 0))
+        "excitement": int(request.GET.get('excitement', 0)),
+        "calmness": int(request.GET.get('calmness', 0)),
+        "fear": int(request.GET.get('fear', 0)),
+        "love": int(request.GET.get('love', 0)),
+        "surprise": int(request.GET.get('surprise', 0))
     }
 
     if not access_token:
         return JsonResponse({'error': 'Access token is required'}, status=400)
 
+    # 감정 데이터를 Spotify 특성 값으로 변환
     features = map_emotion_to_features(emotion_data)
 
+    # Spotify Recommendations API 호출
     url = "https://api.spotify.com/v1/recommendations"
     headers = {"Authorization": f"Bearer {access_token}"}
     params = {
-        "seed_genres": "pop",
+        "seed_genres": "pop",  # 기본 장르 설정
         "target_valence": features["valence"],
         "target_energy": features["energy"],
         "target_danceability": features["danceability"],
+        "target_acousticness": features["acousticness"],
+        "target_liveness": features["liveness"],
         "limit": 10
     }
 
     response = requests.get(url, headers=headers, params=params)
 
+    # 응답 처리
     if response.status_code == 200:
         tracks = response.json().get("tracks", [])
         formatted_tracks = [
