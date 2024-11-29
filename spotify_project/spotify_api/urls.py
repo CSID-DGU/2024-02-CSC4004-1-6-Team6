@@ -8,4 +8,5 @@ urlpatterns = [
     path('user-info/', views.user_info, name='user_info'),
     path('get-auth-url/', views.get_auth_url, name='get_auth_url'),
     path('callback/', views.callback, name='callback'),
+    path('recommend-tracks/', views.recommend_tracks, name='recommend_tracks'),
 ]

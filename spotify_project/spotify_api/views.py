@@ -172,3 +172,56 @@ def callback(request):
         return JsonResponse({"access_token": tokens['access_token']})
     else:
         return JsonResponse({'error': 'Failed to get access token'}, status=response.status_code)
+
+def map_emotion_to_features(emotion_data):
+    """
+    감정 데이터를 Spotify 오디오 특성 값으로 매핑하는 함수
+    """
+    return {
+        "valence": max(0, emotion_data.get("happiness", 0) / 100 - emotion_data.get("sadness", 0) / 100),
+        "energy": min(1, (emotion_data.get("anger", 0) + emotion_data.get("excitement", 0)) / 100),
+        "danceability": emotion_data.get("excitement", 0) / 100
+    }
+
+def recommend_tracks(request):
+    """
+    감정 데이터를 기반으로 Spotify 추천 곡 가져오기
+    """
+    access_token = request.GET.get('access_token')
+    emotion_data = {
+        "happiness": int(request.GET.get('happiness', 0)),
+        "sadness": int(request.GET.get('sadness', 0)),
+        "anger": int(request.GET.get('anger', 0)),
+        "excitement": int(request.GET.get('excitement', 0))
+    }
+
+    if not access_token:
+        return JsonResponse({'error': 'Access token is required'}, status=400)
+
+    features = map_emotion_to_features(emotion_data)
+
+    url = "https://api.spotify.com/v1/recommendations"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    params = {
+        "seed_genres": "pop",
+        "target_valence": features["valence"],
+        "target_energy": features["energy"],
+        "target_danceability": features["danceability"],
+        "limit": 10
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code == 200:
+        tracks = response.json().get("tracks", [])
+        formatted_tracks = [
+            {
+                "name": track["name"],
+                "artist": ", ".join(artist["name"] for artist in track["artists"]),
+                "url": track["external_urls"]["spotify"]
+            }
+            for track in tracks
+        ]
+        return JsonResponse({"tracks": formatted_tracks})
+    else:
+        return JsonResponse({'error': 'Failed to get recommendations'}, status=response.status_code)
