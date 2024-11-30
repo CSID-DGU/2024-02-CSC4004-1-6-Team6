@@ -72,18 +72,24 @@ const MyCalendar = ({ user, onLogout }) => {
     }
   };
 
-  // 감정에 따른 이모지 반환
-  const getSentimentEmoji = (sentiment) => {
-    switch (sentiment) {
-      case "positive":
-        return "😊";
-      case "neutral":
-        return "😐";
-      case "negative":
-        return "😢";
-      default:
-        return "🤔";
-    }
+  // 감정에 따라 적절한 이모지를 반환하는 함수
+const getSentimentEmoji = (emotion) => {
+  switch (emotion.toLowerCase()) {
+    case "happiness":
+      return "😊"; // 기쁨
+    case "sadness":
+      return "😢"; // 슬픔
+    case "anger":
+      return "😡"; // 분노
+    case "fear":
+      return "😨"; // 두려움
+    case "surprise":
+      return "😲"; // 놀람
+    case "disgust":
+      return "🤢"; // 혐오감
+    default:
+      return "🤔"; // 기타 또는 알 수 없는 상태
+  }
   };
 
   const chartData = {
