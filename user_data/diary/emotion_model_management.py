@@ -1,20 +1,21 @@
 from datetime import timedelta
 from django.db.models import Avg
 from django.utils.timezone import now
-from backend_API.twilio_api.models import *
+from user_data.models import *
 from backend_API.twilio_api.utils.send_sms import emotion_alarm_for_user
 
-# 1) 일기를 저장
-# 2) 일기의 감정을 저장
-# 3) 주간 감정상태 계산
-# 4) 월간 감정상태 계산
+# 1) 일기를 저장 - 프론트 저장 버튼에 트리거
+# 2) 일기의 감정을 저장 - 프론트에서 감정데이터가 들어온다는 가정하에 작성됨
+# 3) 주간 감정 상태 계산 - 일기 감정 저장시 호출됨 + 슬픔수치 80이상일 시 백엔드에서 문자 발송
+# 4) 월간 감정 상태 계산 - 주간 감정 저장시 호출됨
 
-# 일기저장 - 프론트의 저장버튼에 트리거되는 일기 저장 함수
+# 일기 저장 - 프론트의 저장 버튼에 트리거되는 일기 저장 함수
 def save_diary(user, title, content) :
     diary = Diary.objects.create(user=user, title=title, content=content)
     return diary
 
-# 일기 감정 데이터 저장 - gpt api에서 감정데이터 뽑혔을때 트리거, 일기 저장 후 주간 감정 모델 업데이트
+# 일기 감정 데이터 저장 - gpt api에서 감정데이터 뽑혔을 때 트리거, 일기 저장 후 주간 감정 모델 업데이트
+# 현재 프론트에서 감정데이터가 들어온다고 가정하고 연결했습니다.
 def save_diary_emotion(diary, emotion_data):
     # 일기 감정 데이터 업데이트 또는 생성
     emotion, created = DiaryEmotion.objects.update_or_create(
@@ -75,8 +76,7 @@ def update_weekly_emotion(user):
         }
     )
 
-    # 최소 데이터 개수 기준: 3개 이상의 데이터가 있어야 계산, 일주일동안 일기 안쓰다가 하루 썼는데
-    # 감정 기준치 넘겨서 문자 발송되는 상황을 막고 싶었습니다. 이 부분은 좋은 의견이 필요할 거 같습니다...
+    # 최소 데이터 개수 기준: 3개 이상의 데이터가 있어야 계산, 일주일동안 일기 안쓰다가 하루 썼는데 감정 기준치 넘겨서 문자 발송되는 상황을 막고 싶었습니다.
     if diary_emotions.count() >= 3:
         emotion_alarm_for_user(user)
 

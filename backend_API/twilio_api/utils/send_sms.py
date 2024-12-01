@@ -2,7 +2,7 @@ import os
 import django
 from twilio.rest import Client # twilio 라이브러리
 from dotenv import load_dotenv
-from backend_API.twilio_api.models import WeeklyEmotion
+from user_data.models import WeeklyEmotion
 
 # 감정 상태가 위험 상태일 때 사용자에게 기관 연락처를 알려주고 연락을 권유함
 # 일단 유저 에게 메시지 를 보내는 쪽으로 작성 했 습니다.
