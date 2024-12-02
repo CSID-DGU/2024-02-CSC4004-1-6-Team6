@@ -31,11 +31,20 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # 기본 앱
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # 사용자 정의 앱
+    'GPT_API',
+    'spotify_project',
+    'user_data',
+    'emotion_analysis',
+    'data_processing',
 ]
 
 MIDDLEWARE = [
