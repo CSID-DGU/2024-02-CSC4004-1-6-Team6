@@ -5,27 +5,36 @@ const EmotionManagement = () => {
     const [tips, setTips] = useState([]); // 감정 관리 팁 상태
     const [loading, setLoading] = useState(true); // 로딩 상태
 
-    // API로부터 감정 관리 팁 데이터 가져오기
+    // 감정 관리 팁 가져오기
     useEffect(() => {
-        const fetchTips = async () => {
+        const fetchEmotionTips = async () => {
             try {
-                const response = await fetch("/api/emotion-tips"); // API 호출
+                const response = await fetch("/api/gpt/summarize-text", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        text: "감정 관리 방법을 생성해 주세요.",
+                    }),
+                });
+
                 if (response.ok) {
                     const result = await response.json();
-                    setTips(result); // 데이터 상태에 저장
+                    setTips(result.tips || []); // 결과에서 팁 데이터 저장
                 } else {
                     const error = await response.json();
-                    alert(`팁 데이터 로드 실패: ${error.message}`);
+                    alert(`팁 로드 실패: ${error.message}`);
                 }
             } catch (error) {
-                console.error("데이터 로드 중 오류 발생:", error);
-                alert("서버와의 연결에 문제가 있습니다.");
+                console.error("팁 로드 오류 발생:", error);
+                alert("감정 관리 팁을 가져오는 중 오류가 발생했습니다.");
             } finally {
-                setLoading(false); // 로딩 상태 해제
+                setLoading(false);
             }
         };
 
-        fetchTips();
+        fetchEmotionTips();
     }, []);
 
     return (
