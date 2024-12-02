@@ -14,27 +14,32 @@ const EmotionGraph = () => {
     const [data, setData] = useState([]); // 감정 데이터 상태
     const [loading, setLoading] = useState(true); // 로딩 상태
 
-    // 데이터 가져오기
+    // 감정 데이터 가져오기
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchEmotionData = async () => {
             try {
-                const response = await fetch("/api/emotions"); // 서버에서 데이터 가져오기
+                const response = await fetch("/api/mysql/get-data/1"); // 백엔드 API 호출
                 if (response.ok) {
                     const result = await response.json();
-                    setData(result); // 데이터를 상태에 저장
+                    // 백엔드에서 받은 데이터 가공
+                    const formattedData = result.map((item) => ({
+                        date: item.date, // 날짜 (예: "11-01")
+                        emotion: item.emotion, // 감정 점수
+                    }));
+                    setData(formattedData);
                 } else {
                     const error = await response.json();
                     alert(`데이터 로드 실패: ${error.message}`);
                 }
             } catch (error) {
                 console.error("데이터 로드 중 오류 발생:", error);
-                alert("서버와의 연결에 문제가 있습니다.");
+                alert("감정 데이터를 가져오는 중 오류가 발생했습니다.");
             } finally {
-                setLoading(false); // 로딩 상태 해제
+                setLoading(false);
             }
         };
 
-        fetchData();
+        fetchEmotionData();
     }, []);
 
     return (
