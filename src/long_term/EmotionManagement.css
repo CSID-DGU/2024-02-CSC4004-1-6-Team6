@@ -1,0 +1,33 @@
+.management-popup {
+    width: 600px;
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 20px 30px;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.3);
+    margin: 20px auto;
+}
+
+.management-title {
+    font-size: 24px;
+    text-align: center;
+    color: #656c63;
+    margin-bottom: 20px;
+}
+
+.management-tips {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tip-item {
+    background-color: #f9f9f9;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 16px;
+    color: #333333;
+}
