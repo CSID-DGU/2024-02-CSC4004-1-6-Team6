@@ -16,7 +16,7 @@ from pathlib import Path
 # 프로젝트 루트 디렉토리에서 .env 파일 로드
 dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
 load_dotenv(dotenv_path)
-
+AUTH_USER_MODEL = 'user_data.CustomUser'  # CustomUser 모델로 변경
 # 예제: 환경 변수 가져오기
 GPT_API_KEY = os.getenv("GPT_API_KEY")
 DB_NAME = os.getenv("DB_NAME")
