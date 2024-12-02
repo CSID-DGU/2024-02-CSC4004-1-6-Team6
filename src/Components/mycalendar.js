@@ -247,6 +247,14 @@ const MyCalendar = ({ user, onLogout }) => {
               >
                 음악 추천
               </button>
+              
+              {/* 새로운 일기 작성 버튼 */}
+              <button
+                className="diary-button"
+                onClick={() => navigate("/diary", { state: { date: selectedDate } })}
+              >
+                일기 작성
+              </button>
             </div>
           </div>
         </div>
