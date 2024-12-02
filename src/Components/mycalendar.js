@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { Line } from "react-chartjs-2"; // Chart.js를 사용한 라인 차트
+import { Line } from "react-chartjs-2"; // Chart.js 사용
 import "C:/Program Files/OSS-Project/react-calendar/src/Styles/mycalendar.css";
 
 const MyCalendar = ({ user, onLogout }) => {
@@ -16,6 +16,30 @@ const MyCalendar = ({ user, onLogout }) => {
   const [emotionRecords, setEmotionRecords] = useState([]);
   const [formattedSelectedDate, setFormattedSelectedDate] = useState("");
   const [emotionGraphData, setEmotionGraphData] = useState([]);
+  const [calendarEvents, setCalendarEvents] = useState([]); // 달력 감정 데이터
+
+  useEffect(() => {
+    // 감정 데이터를 가져와 달력 이벤트로 변환
+    async function fetchEmotionData() {
+      try {
+        const response = await fetch("/api/emotions");
+        if (response.ok) {
+          const data = await response.json(); // 예: [{ date: "2024-12-01", emotion: "happiness" }]
+          const events = data.map((item) => ({
+            title: getSentimentEmoji(item.emotion),
+            start: item.date,
+          }));
+          setCalendarEvents(events);
+        } else {
+          console.error("Failed to fetch emotion data");
+        }
+      } catch (error) {
+        console.error("Error fetching emotion data:", error);
+      }
+    }
+
+    fetchEmotionData();
+  }, []);
 
   const handleMusicRecommendation = () => {
     navigate("/recommendations");
@@ -51,7 +75,6 @@ const MyCalendar = ({ user, onLogout }) => {
 
     setShowPopup(true);
 
-    // 감정 기록과 그래프 데이터 API 요청
     try {
       const [recordsResponse, graphResponse] = await Promise.all([
         fetch(`/api/emotions?date=${dateStr}`),
@@ -72,24 +95,20 @@ const MyCalendar = ({ user, onLogout }) => {
     }
   };
 
-  // 감정에 따라 적절한 이모지를 반환하는 함수
-const getSentimentEmoji = (emotion) => {
-  switch (emotion.toLowerCase()) {
-    case "happiness":
-      return "😊"; // 기쁨
-    case "sadness":
-      return "😢"; // 슬픔
-    case "anger":
-      return "😡"; // 분노
-    case "fear":
-      return "😨"; // 두려움
-    case "surprise":
-      return "😲"; // 놀람
-    case "disgust":
-      return "🤢"; // 혐오감
-    default:
-      return "🤔"; // 기타 또는 알 수 없는 상태
-  }
+  const getSentimentEmoji = (emotion) => {
+    const emotionMap = {
+      happiness: "😊",
+      sadness: "😢",
+      anger: "😡",
+      excitement: "🤩",
+      calmness: "😌",
+      fear: "😨",
+      love: "❤️",
+      surprise: "😲",
+      unknown: "🤔", // 알 수 없는 감정
+    };
+
+    return emotionMap[emotion.toLowerCase()] || emotionMap["unknown"];
   };
 
   const chartData = {
@@ -146,6 +165,7 @@ const getSentimentEmoji = (emotion) => {
         </div>
       )}
 
+      {/* 메인 캘린더 */}
       <FullCalendar
         key={calendarKey}
         plugins={[dayGridPlugin, interactionPlugin]}
@@ -153,9 +173,11 @@ const getSentimentEmoji = (emotion) => {
         height="800px"
         initialDate={currentDate}
         headerToolbar={false}
+        events={calendarEvents} // 감정 데이터를 이벤트로 전달
         dateClick={(info) => handleDateClick(info)}
       />
 
+      {/* 팝업 캘린더 */}
       {showPopup && (
         <div className="popup-overlay">
           <div className="popup">
@@ -178,6 +200,7 @@ const getSentimentEmoji = (emotion) => {
                 headerToolbar={false}
                 height="auto"
                 contentHeight="120px"
+                events={calendarEvents} // 팝업 캘린더에도 감정 데이터 적용
                 selectable={true}
                 dateClick={(info) => handleDateClick(info.dateStr)}
               />
@@ -195,11 +218,12 @@ const getSentimentEmoji = (emotion) => {
               {emotionRecords.length > 0 ? (
                 emotionRecords.map((record, index) => (
                   <div key={index} className="emotion-record">
-                    {/* 이모지 */}
-                    <span className="emotion-emoji">{getSentimentEmoji(record.sentiment)}</span>
-                    {/* 제목 */}
-                    <span className="emotion-title">{record.title || "나의 일기"}</span>
-                    {/* 시간 */}
+                    <span className="emotion-emoji">
+                      {getSentimentEmoji(record.sentiment)}
+                    </span>
+                    <span className="emotion-title">
+                      {record.title || "나의 일기"}
+                    </span>
                     <span className="emotion-time">{record.time}</span>
                   </div>
                 ))
@@ -232,3 +256,4 @@ const getSentimentEmoji = (emotion) => {
 };
 
 export default MyCalendar;
+
