@@ -9,6 +9,32 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+from dotenv import load_dotenv
+import os
+
+# 프로젝트 루트 디렉토리에서 .env 파일 로드
+dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+load_dotenv(dotenv_path)
+
+# 예제: 환경 변수 가져오기
+GPT_API_KEY = os.getenv("GPT_API_KEY")
+DB_NAME = os.getenv("DB_NAME")
+SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
+SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
+
+
+
+# 데이터베이스 설정
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',  # MySQL 사용 시
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': os.getenv("DB_HOST"),
+        'PORT': os.getenv("DB_PORT"),
+    }
+}
 
 from pathlib import Path
 
@@ -41,7 +67,7 @@ INSTALLED_APPS = [
 
     # 사용자 정의 앱
     'GPT_API',
-    'spotify_project',
+    'spotify_project'
     'user_data',
     'emotion_analysis',
     'data_processing',
