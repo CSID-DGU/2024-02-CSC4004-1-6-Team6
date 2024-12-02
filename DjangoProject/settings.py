@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 from dotenv import load_dotenv
 import os
+from pathlib import Path
 
 # 프로젝트 루트 디렉토리에서 .env 파일 로드
 dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
@@ -23,23 +24,19 @@ SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 
 
-
+BASE_DIR = Path(__file__).resolve().parent.parent
 # 데이터베이스 설정
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # MySQL 사용 시
-        'NAME': os.getenv("DB_NAME"),
-        'USER': os.getenv("DB_USER"),
-        'PASSWORD': os.getenv("DB_PASSWORD"),
-        'HOST': os.getenv("DB_HOST"),
-        'PORT': os.getenv("DB_PORT"),
+        'ENGINE': 'django.db.backends.sqlite3',  # SQLite 사용
+        'NAME': BASE_DIR / 'db.sqlite3',  # 데이터베이스 파일 경로
     }
 }
 
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -67,10 +64,11 @@ INSTALLED_APPS = [
 
     # 사용자 정의 앱
     'GPT_API',
-    'spotify_project'
+    'spotify_project',
     'user_data',
     'emotion_analysis',
     'data_processing',
+    'logincheck',
 ]
 
 MIDDLEWARE = [
@@ -108,12 +106,7 @@ WSGI_APPLICATION = 'DjangoProject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+
 
 
 # Password validation

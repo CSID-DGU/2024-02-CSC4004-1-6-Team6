@@ -6,6 +6,7 @@ urlpatterns = [
     path("emotion/", include("emotion_analysis.urls")),  # emotion_analysis 앱 URL 연결
     path("data/", include("data_processing.urls")),
     path("spotify/", include("spotify_project.urls")),# data_processing 앱 URL 연결
+    path('data/', include('data_processing.urls')),
 ]
 
 
