@@ -5,45 +5,47 @@ const LoginPopup = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    // Google 로그인 처리 함수
-    const handleGoogleLogin = async () => {
+    // 로그인 API 호출
+    const handleLogin = async (e) => {
+        e.preventDefault(); // 폼 기본 동작 방지
+
         try {
-            const response = await fetch("/api/auth/google", {
-                method: "GET",
-                credentials: "include",
+            const response = await fetch("/api/crud/user-login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
             });
+
             if (response.ok) {
-                const data = await response.json();
-                alert("Google 로그인 성공: " + JSON.stringify(data));
+                const result = await response.json();
+                alert(`로그인 성공: ${result.message}`);
             } else {
-                throw new Error("Google 로그인 실패");
+                const error = await response.json();
+                alert(`로그인 실패: ${error.message}`);
             }
         } catch (error) {
-            console.error(error);
-            alert("Google 로그인 중 오류가 발생했습니다.");
+            console.error("로그인 중 오류 발생:", error);
+            alert("로그인 요청 중 오류가 발생했습니다.");
         }
     };
 
-    const handleEmailLogin = async (e) => {
-        e.preventDefault();
+    // Google 로그인 API 호출
+    const handleGoogleLogin = async () => {
         try {
-            const response = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
+            const response = await fetch("/api/oauth/google-login", {
+                method: "GET",
+                credentials: "include", // 쿠키 포함
             });
+
             if (response.ok) {
-                const data = await response.json();
-                alert("로그인 성공: " + JSON.stringify(data));
+                const result = await response.json();
+                alert("Google 로그인 성공!");
             } else {
-                const error = await response.json();
-                alert("로그인 실패: " + error.message);
+                alert("Google 로그인 실패.");
             }
         } catch (error) {
-            console.error(error);
-            alert("로그인 중 오류가 발생했습니다.");
+            console.error("Google 로그인 중 오류 발생:", error);
+            alert("Google 로그인 요청 중 오류가 발생했습니다.");
         }
     };
 
@@ -69,7 +71,7 @@ const LoginPopup = () => {
                 </button>
                 <p className="separator">또는</p>
                 {/* 이메일과 비밀번호 입력 */}
-                <form className="login-form" onSubmit={handleEmailLogin}>
+                <form className="login-form" onSubmit={handleLogin}>
                     <div className="input-group">
                         <img
                             src="email-icon.png"
@@ -82,6 +84,7 @@ const LoginPopup = () => {
                             className="input-field"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            required
                         />
                     </div>
                     <div className="input-group">
@@ -96,6 +99,7 @@ const LoginPopup = () => {
                             className="input-field"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            required
                         />
                     </div>
                     <button type="submit" className="login-button">로그인</button>

@@ -27,7 +27,7 @@ const DiaryEditor = () => {
         setDiaryContent(e.target.value);
     };
 
-    // 저장 버튼 클릭 핸들러 (API 연동 추가)
+    // 저장 버튼 클릭 핸들러 (API 연동)
     const handleSave = async () => {
         if (diaryContent.trim() === "") {
             alert("내용을 입력해주세요.");
@@ -35,11 +35,9 @@ const DiaryEditor = () => {
         }
 
         try {
-            const response = await fetch("/api/diary/save", {
+            const response = await fetch("/api/mysql/insert-data", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     date,
                     time,
@@ -49,40 +47,35 @@ const DiaryEditor = () => {
 
             if (response.ok) {
                 const result = await response.json();
-                alert("일기가 저장되었습니다.");
-                console.log("저장된 내용:", result);
+                alert(`일기가 저장되었습니다! ID: ${result.id}`);
             } else {
                 const error = await response.json();
                 alert(`저장 실패: ${error.message}`);
             }
         } catch (error) {
-            console.error(error);
-            alert("일기 저장 중 오류가 발생했습니다.");
+            console.error("일기 저장 오류 발생:", error);
+            alert("일기 저장 요청 중 오류가 발생했습니다.");
         }
     };
 
-    // 삭제 버튼 클릭 핸들러 (API 연동 추가)
+    // 삭제 버튼 클릭 핸들러 (API 연동)
     const handleDelete = async () => {
         if (window.confirm("정말로 이 일기를 삭제하시겠습니까?")) {
             try {
-                const response = await fetch("/api/diary/delete", {
+                const response = await fetch(`/api/mysql/delete-data/${date}`, {
                     method: "DELETE",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ date, time }),
                 });
 
                 if (response.ok) {
                     alert("일기가 삭제되었습니다.");
-                    setDiaryContent("");
+                    setDiaryContent(""); // 로컬 상태 초기화
                 } else {
                     const error = await response.json();
                     alert(`삭제 실패: ${error.message}`);
                 }
             } catch (error) {
-                console.error(error);
-                alert("일기 삭제 중 오류가 발생했습니다.");
+                console.error("일기 삭제 오류 발생:", error);
+                alert("일기 삭제 요청 중 오류가 발생했습니다.");
             }
         }
     };
