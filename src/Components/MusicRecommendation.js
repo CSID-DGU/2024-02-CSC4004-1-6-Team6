@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import "../Styles/musicrecommendation.css";
+import "../Styles/MusicRecommendation.css";
 
 const MusicRecommendation = () => {
   const location = useLocation();
