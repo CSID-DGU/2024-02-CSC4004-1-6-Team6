@@ -53,11 +53,20 @@ body, html {
 .close-button {
   width: 36px;
   height: 36px;
-  background: url('close-icon.png') no-repeat center;
-  background-size: cover;
-  border: none;
-  cursor: pointer;
+  border: none; /* 테두리 제거 */
+  cursor: pointer; /* 클릭 가능한 상태 */
+  padding: 0; /* 기본 패딩 제거 */
+  display: flex;
+  justify-content: center; /* 버튼 내부 정렬 */
+  align-items: center;
 }
+
+.close-icon {
+  width: 100%; /* 버튼 크기에 맞게 이미지 크기 조정 */
+  height: 100%;
+  object-fit: cover; /* 이미지 비율 유지 */
+}
+
 
 /* 본문 내용 */
 .diary-content {

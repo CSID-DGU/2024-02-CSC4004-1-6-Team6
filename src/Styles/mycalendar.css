@@ -233,6 +233,7 @@
   .recommend-button:hover {
     background-color: #4a4f44;
   }
+
   .diary-button {
     background-color: #4caf50; /* 초록색 */
     color: white;
@@ -246,4 +247,20 @@
   
   .diary-button:hover {
     background-color: #45a049;
-  }  
+  } 
+
+  .emotion-graph-btn {
+    background-color: #007bff; /* 파란색 버튼 */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 10px;
+    transition: background-color 0.3s;
+}
+
+.emotion-graph-btn:hover {
+    background-color: #0056b3; /* Hover 시 어두운 파란색 */
+}

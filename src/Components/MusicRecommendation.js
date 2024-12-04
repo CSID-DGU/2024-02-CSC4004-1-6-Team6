@@ -1,78 +1,139 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import "../Styles/musicrecommendation.css";
 
 const MusicRecommendation = () => {
-  const [playlist, setPlaylist] = useState(null); // 생성된 플레이리스트 정보
-  const [isLoading, setIsLoading] = useState(true); // 로딩 상태 관리
+  const location = useLocation();
+  const { emotionType } = location.state || {};
+  const [tracks, setTracks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // 백엔드에서 플레이리스트 정보 가져오기
-  useEffect(() => {
-    async function fetchPlaylist() {
-      try {
-        const response = await fetch("/api/spotify/create-playlist"); // 백엔드에서 생성된 플레이리스트 가져오기
-        if (response.ok) {
-          const data = await response.json();
-          setPlaylist(data); // 백엔드에서 반환된 플레이리스트 정보 저장
-        } else {
-          console.error("Failed to fetch playlist");
-          alert("추천 플레이리스트를 가져오는 데 실패했습니다.");
-        }
-      } catch (error) {
-        console.error("Error fetching playlist:", error);
-      } finally {
-        setIsLoading(false);
+  const SPOTIFY_CLIENT_ID = "your_client_id";
+  const SPOTIFY_CLIENT_SECRET = "your_client_secret";
+
+  // Spotify Access Token 가져오기
+  const fetchSpotifyToken = async () => {
+    try {
+      const response = await fetch("https://accounts.spotify.com/api/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization:
+            "Basic " + btoa(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`),
+        },
+        body: "grant_type=client_credentials",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.access_token;
+      } else {
+        throw new Error("Failed to fetch Spotify token");
       }
+    } catch (error) {
+      console.error("Error fetching Spotify token:", error);
+      setError("Spotify 인증에 실패했습니다.");
+      return null;
     }
-    fetchPlaylist();
-  }, []);
+  };
+
+  // Spotify 추천 음악 가져오기
+  const fetchRecommendations = async (token, genre) => {
+    try {
+      const response = await fetch(
+        `https://api.spotify.com/v1/recommendations?seed_genres=${genre}&limit=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setTracks(data.tracks);
+      } else {
+        throw new Error("Failed to fetch Spotify recommendations");
+      }
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+      setError("추천 음악을 가져오는 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const getMusicRecommendations = async () => {
+      if (!emotionType) {
+        setError("주요 감정 데이터가 없습니다.");
+        setLoading(false);
+        return;
+      }
+
+      const genreMap = {
+        happiness: "happy",
+        sadness: "sad",
+        anger: "angry",
+        fear: "ambient",
+        surprise: "upbeat",
+        disgust: "calm",
+      };
+
+      const genre = genreMap[emotionType] || "pop"; // 기본 장르: pop
+      const token = await fetchSpotifyToken();
+
+      if (token) {
+        await fetchRecommendations(token, genre);
+      }
+    };
+
+    getMusicRecommendations();
+  }, [emotionType]);
+
+  if (loading) {
+    return <p className="loading-message">추천 음악을 불러오는 중입니다...</p>;
+  }
+
+  if (error) {
+    return <p className="error-message">{error}</p>;
+  }
 
   return (
-    <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
-      <h1>Spotify 추천 음악</h1>
+    <div className="music-recommendation-container">
+      <h1 className="title">Spotify 추천 음악</h1>
 
-      {/* 로딩 중 */}
-      {isLoading && <p>추천 플레이리스트를 불러오는 중입니다...</p>}
-
-      {/* 플레이리스트 표시 */}
-      {playlist && (
-        <div>
-          <h2>추천 플레이리스트: {playlist.name}</h2>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-            {playlist.tracks.map((track) => (
-              <div
-                key={track.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  border: "1px solid #ccc",
-                  borderRadius: "5px",
-                  padding: "10px",
-                  width: "100%",
-                }}
-              >
-                <img
-                  src={track.albumArt}
-                  alt={track.name}
-                  style={{ width: "50px", height: "50px" }}
-                />
-                <div>
-                  <p style={{ margin: 0 }}>{track.name}</p>
-                  <p style={{ fontSize: "12px", color: "gray", margin: 0 }}>
-                    {track.artist}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 플레이리스트가 없을 때 */}
-      {!playlist && !isLoading && (
-        <p>추천받을 플레이리스트가 없습니다. 일기를 먼저 작성해주세요.</p>
+      {tracks.length > 0 ? (
+        <ul className="track-list">
+          {tracks.map((track) => (
+            <li key={track.id} className="track-item">
+              <img
+                src={track.album.images[0]?.url || ""}
+                alt={track.name}
+                className="track-album-art"
+              />
+              <h3>{track.name}</h3>
+              <p>{track.artists[0]?.name}</p>
+              {/* Spotify 웹 플레이어 삽입 */}
+              <iframe
+                src={`https://open.spotify.com/embed/track/${track.id}`}
+                width="300"
+                height="80"
+                frameBorder="0"
+                allow="encrypted-media"
+                allowTransparency="true"
+                title={track.name}
+              ></iframe>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="no-data-message">추천받을 음악이 없습니다.</p>
       )}
     </div>
   );
 };
 
 export default MusicRecommendation;
+
