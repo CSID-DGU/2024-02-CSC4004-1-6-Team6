@@ -30,4 +30,8 @@ public class DiaryEmotionController {
     public ResponseDto<?> getEmotionsByusername(@PathVariable("username") String username) {
         return ResponseDto.ok(diaryEmotionService.getEmotionsByUserName(username));
     }
+    @GetMapping
+    public ResponseDto<?> getEmotionsByDate(@RequestParam("date") String date) {
+        return ResponseDto.ok(this.diaryEmotionService.getEmotionsByDate(date));
+    }
 }
