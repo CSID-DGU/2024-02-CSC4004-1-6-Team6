@@ -9,8 +9,8 @@ const MusicRecommendation = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const SPOTIFY_CLIENT_ID = "your_client_id";
-  const SPOTIFY_CLIENT_SECRET = "your_client_secret";
+  const SPOTIFY_CLIENT_ID = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
+  const SPOTIFY_CLIENT_SECRET = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET;
 
   // Spotify Access Token 가져오기
   const fetchSpotifyToken = async () => {
