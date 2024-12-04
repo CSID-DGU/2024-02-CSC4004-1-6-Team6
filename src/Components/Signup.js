@@ -29,13 +29,13 @@ const Signup = () => {
         const { username, password, email, firstName, lastName, phoneNumber } = formData;
 
         try {
-            const response = await fetch("/api/auth/signup", {
+            const response = await fetch("http://localhost:8080/api/auth/signup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    username,
-                    password,
-                    email,
+                    username: username,
+                    password: password,
+                    email: email,
                     first_name: firstName,
                     last_name: lastName,
                     phone_number: phoneNumber,

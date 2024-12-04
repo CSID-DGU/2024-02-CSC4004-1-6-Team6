@@ -23,7 +23,7 @@ const EmotionGraph = () => {
         const fetchEmotionData = async () => {
             try {
                 // 날짜 기반으로 백엔드에서 데이터 가져오기
-                const response = await fetch(`/api/diary-emotion/?date=${date}`);
+                const response = await fetch(`http://localhost:3000//api/diary-emotion/?date=${date}`);
                 if (response.ok) {
                     const result = await response.json();
                     const formattedData = Object.entries(result).map(

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom"; // useNavigate import
+import { useNavigate, Link } from "react-router-dom";
 import "../Styles/login.css"; // CSS 파일 import
 
-const LoginPopup = ({ onLogin }) => { // onLogin 콜백 추가
+const LoginPopup = ({ onLogin }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isPopupVisible, setIsPopupVisible] = useState(true); // 팝업 표시 여부 상태
@@ -13,7 +13,7 @@ const LoginPopup = ({ onLogin }) => { // onLogin 콜백 추가
         e.preventDefault(); // 폼 기본 동작 방지
 
         try {
-            const response = await fetch("/api/auth/login", {
+            const response = await fetch("http://localhost:8080/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
@@ -21,15 +21,32 @@ const LoginPopup = ({ onLogin }) => { // onLogin 콜백 추가
 
             if (response.ok) {
                 const result = await response.json();
-                alert(`로그인 성공: ${result.message}`);
-                
-                // onLogin 콜백 호출 및 사용자 정보 전달
-                onLogin({
-                    username: result.username, // 서버에서 반환된 사용자 이름
-                    profilePicture: result.profilePicture || "https://via.placeholder.com/40", // 프로필 이미지
-                });
+                if (!result.data?.jwt) {
+                    alert("비밀번호가 다릅니다.");
+                    return;
+                }
 
-                navigate("/calendar");
+                if (result.success) {
+                    // JWT 토큰 및 사용자 이름 저장
+                    const token = result.data.jwt;
+                    const userName = result.data.username;
+
+                    localStorage.setItem("token", token); // JWT 토큰 저장
+                    localStorage.setItem("username", userName); // 사용자 이름 저장
+
+                    alert("로그인 성공!");
+
+                    // 사용자 정보를 상위 컴포넌트에 전달
+                    onLogin({
+                        username: userName,
+                        profilePicture: "https://via.placeholder.com/40", // 기본 프로필 이미지 사용
+                    });
+
+                    // 캘린더 페이지로 이동
+                    navigate("/calendar");
+                } else {
+                    alert("아이디와 옳지 않습니다.");
+                }
             } else {
                 const error = await response.json();
                 alert(`로그인 실패: ${error.message}`);
@@ -54,32 +71,20 @@ const LoginPopup = ({ onLogin }) => { // onLogin 콜백 추가
             <div className="login-popup">
                 {/* 닫기 버튼 */}
                 <button className="close-button" onClick={handleClosePopup}>
-                    <img 
-                        src="/login/close-icon.png" 
-                        alt="닫기" 
-                        className="close-icon"
-                    />
+                    <img src="/login/close-icon.png" alt="닫기" className="close-icon" />
                 </button>
 
                 {/* 프로필 아이콘 */}
                 <div className="profile-icon">
-                    <img
-                        src="/login/profile-image.png"
-                        alt="프로필 이미지"
-                        className="profile-image"
-                    />
+                    <img src="/login/profile-image.png" alt="프로필 이미지" className="profile-image" />
                 </div>
-                
+
                 {/* 아이디와 비밀번호 입력 */}
                 <form className="login-form" onSubmit={handleLogin}>
                     <div className="input-group">
-                        <img
-                            src="/login/image-icon.png"
-                            alt="아이디"
-                            className="input-icon"
-                        />
+                        <img src="/login/image-icon.png" alt="아이디" className="input-icon" />
                         <input
-                            type="username"
+                            type="text"
                             placeholder="아이디"
                             className="input-field"
                             value={username}
@@ -88,11 +93,7 @@ const LoginPopup = ({ onLogin }) => { // onLogin 콜백 추가
                         />
                     </div>
                     <div className="input-group">
-                        <img
-                            src="/login/password-icon.png"
-                            alt="비밀번호"
-                            className="input-icon"
-                        />
+                        <img src="/login/password-icon.png" alt="비밀번호" className="input-icon" />
                         <input
                             type="password"
                             placeholder="비밀번호"
@@ -103,7 +104,9 @@ const LoginPopup = ({ onLogin }) => { // onLogin 콜백 추가
                         />
                     </div>
                     <button type="submit" className="login-button">로그인</button>
-                    <p>아직 계정이 없으신가요? <Link to="/signup">회원가입</Link></p>
+                    <p>
+                        아직 계정이 없으신가요? <Link to="/signup">회원가입</Link>
+                    </p>
                 </form>
             </div>
         </div>

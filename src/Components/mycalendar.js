@@ -5,26 +5,54 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { Line } from "react-chartjs-2";
 import "../Styles/mycalendar.css";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const MyCalendar = ({ user, onLogout }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarEvents, setCalendarEvents] = useState([]);
-  const [calendarKey, setCalendarKey] = useState(0);
-  const [popupCalendarKey, setPopupCalendarKey] = useState(0);
   const [selectedDate, setSelectedDate] = useState(location.state?.date || null);
   const [showPopup, setShowPopup] = useState(location.state?.showPopup || false);
   const [emotionRecords, setEmotionRecords] = useState({});
   const [formattedSelectedDate, setFormattedSelectedDate] = useState("");
-  const [majorEmotion, setMajorEmotion] = useState(null); // 주요 감정 상태
+  const [majorEmotion, setMajorEmotion] = useState(null);
+  const [diaryEntries, setDiaryEntries] = useState([]);
+  const [filteredDiaries, setFilteredDiaries] = useState([]);
 
-  // 감정 데이터를 가져와 달력 이벤트로 변환
+  useEffect(() => {
+    async function fetchDiaryData() {
+      try {
+        const response = await fetch(`http://localhost:8080/api/diary/${user.username}`);
+        if (response.ok) {
+          const data = await response.json();
+          setDiaryEntries(data.data || []);
+        } else {
+          console.error("Failed to fetch diary data");
+        }
+      } catch (error) {
+        console.error("Error fetching diary data:", error);
+      }
+    }
+
+    fetchDiaryData();
+  }, [user.username]);
+
   useEffect(() => {
     async function fetchEmotionData() {
       try {
-        // API 호출 시 username을 동적으로 삽입
-        const response = await fetch(`/api/diary-emotion/all/${user.username}`);
+        const response = await fetch(`http://localhost:8080/api/diary-emotion/all/${user.username}`);
         if (response.ok) {
           const data = await response.json();
           const events = data.map((item) => ({
@@ -47,24 +75,19 @@ const MyCalendar = ({ user, onLogout }) => {
       }
     }
 
-    // user.username이 존재하면 실행
-    if (user?.username) {
-      fetchEmotionData();
-    }
-  }, [user.username]); // username이 바뀔 때만 재실행
+    fetchEmotionData();
+  }, [user.username]);
 
-  // 주요 감정을 분석하는 함수
   const analyzeEmotion = (emotions) => {
     const entries = Object.entries(emotions);
     const maxEntry = entries.reduce((max, current) =>
         current[1] > max[1] ? current : max
     );
-    return maxEntry[1] > 0 ? maxEntry[0] : "Neutral"; // 기본값으로 "Neutral" 반환
+    return maxEntry[1] > 0 ? maxEntry[0] : "Neutral";
   };
 
-  // 날짜 클릭 시 데이터 가져오기
-  const handleDateClick = async (info) => {
-    const dateStr = info.dateStr || info;
+  const handleDateClick = (info) => {
+    const dateStr = info.dateStr;
     setSelectedDate(dateStr);
 
     const formattedDate = new Date(dateStr).toLocaleDateString("en-US", {
@@ -73,34 +96,21 @@ const MyCalendar = ({ user, onLogout }) => {
     });
     setFormattedSelectedDate(formattedDate);
 
+    const diariesForDate = diaryEntries.filter((entry) =>
+        entry.created_at.startsWith(dateStr)
+    );
+    setFilteredDiaries(diariesForDate);
+
     setShowPopup(true);
-
-    try {
-      // 선택된 날짜로 감정 데이터 가져오기
-      const response = await fetch(`/api/diary-emotion?date=${dateStr}`);
-      if (response.ok) {
-        const data = await response.json();
-        setEmotionRecords({
-          happiness: data.happiness,
-          sadness: data.sadness,
-          anger: data.anger,
-          fear: data.fear,
-          surprise: data.surprise,
-          disgust: data.disgust,
-        });
-
-        // majorEmotion 계산 후 상태 업데이트
-        const calculatedMajorEmotion = analyzeEmotion(data);
-        setMajorEmotion(calculatedMajorEmotion);
-      } else {
-        console.error("Failed to fetch emotion data for the selected date");
-      }
-    } catch (error) {
-      console.error("Error fetching emotion data:", error);
-    }
   };
 
-  // 차트 데이터를 생성
+  const closePopup = () => {
+    setShowPopup(false);
+    setSelectedDate(null);
+    setEmotionRecords({});
+    setFilteredDiaries([]);
+  };
+
   const chartData = useMemo(() => ({
     labels: ["Happiness", "Sadness", "Anger", "Fear", "Surprise", "Disgust"],
     datasets: [
@@ -146,83 +156,17 @@ const MyCalendar = ({ user, onLogout }) => {
     };
 
     return Object.entries(emotions)
-        .filter(([_, value]) => value > 0) // 값이 0보다 큰 경우만 이모지 반환
+        .filter(([_, value]) => value > 0)
         .map(([emotion]) => emotionMap[emotion] || "🤔")
         .join(" ");
   };
 
-  const handlePopupArrowClick = (direction) => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + (direction === "prev" ? -7 : 7));
-    setSelectedDate(newDate.toISOString().split("T")[0]);
-    setPopupCalendarKey((prevKey) => prevKey + 1);
-  };
-
-  const handlePrev = () => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(currentDate.getMonth() - 1);
-    setCurrentDate(newDate);
-    setCalendarKey((prevKey) => prevKey + 1);
-  };
-
-  const closePopup = () => {
-    setShowPopup(false);
-    setSelectedDate(null);
-    setEmotionRecords({});
-  };
-
-  const handleNext = () => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(currentDate.getMonth() + 1);
-    setCurrentDate(newDate);
-    setCalendarKey((prevKey) => prevKey + 1);
-  };
-
   return (
       <div className="calendar-container">
-        <div className="nav-container">
-          <button className="prev-btn" onClick={handlePrev}>
-            &lt;
-          </button>
-          <h2 className="month-label">
-            {currentDate.toLocaleString("en-US", { month: "long" })}
-          </h2>
-          <button className="next-btn" onClick={handleNext}>
-            &gt;
-          </button>
-        </div>
-
-        {user && (
-            <div className="top-bar">
-              <button
-                  className="emotion-graph-button"
-                  onClick={() =>
-                      navigate("/emotion-graph", { state: { date: selectedDate } })
-                  }
-              >
-                장기 감정 그래프
-              </button>
-              <img
-                  src={user?.profilePicture || "https://via.placeholder.com/30"}
-                  alt="Profile"
-                  className="profile-img"
-              />
-              <span>{user?.name}</span>
-              <button className="logout-btn" onClick={onLogout}>
-                Logout
-              </button>
-            </div>
-        )}
-
-        {/* 메인 캘린더 */}
         <FullCalendar
-            key={calendarKey}
             plugins={[dayGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
-            height="800px"
-            initialDate={currentDate}
-            headerToolbar={false}
-            events={calendarEvents} // 감정 데이터를 이벤트로 전달
+            events={calendarEvents}
             dateClick={(info) => handleDateClick(info)}
         />
 
@@ -233,39 +177,30 @@ const MyCalendar = ({ user, onLogout }) => {
                   ✕
                 </button>
                 <h2 className="popup-date">{formattedSelectedDate}</h2>
-                <div className="popup-mini-calendar">
-                  <button
-                      className="popup-arrow popup-arrow-left"
-                      onClick={() => handlePopupArrowClick("prev")}
-                  >
-                    &lt;
-                  </button>
-                  <FullCalendar
-                      key={popupCalendarKey}
-                      plugins={[dayGridPlugin, interactionPlugin]}
-                      initialView="dayGridWeek"
-                      initialDate={selectedDate}
-                      headerToolbar={false}
-                      height="auto"
-                      contentHeight="120px"
-                      events={calendarEvents} // 팝업 캘린더에도 감정 데이터 적용
-                      selectable={true}
-                      dateClick={(info) => handleDateClick(info.dateStr)}
-                  />
-                  <button
-                      className="popup-arrow popup-arrow-right"
-                      onClick={() => handlePopupArrowClick("next")}
-                  >
-                    &gt;
-                  </button>
+
+                {/* Display Diaries */}
+                <div className="popup-diaries">
+                  {filteredDiaries.length > 0 ? (
+                      <ul>
+                        {filteredDiaries.map((entry, index) => (
+                            <li key={index}>
+                              <h3>{entry.title}</h3>
+                              <p>{entry.content}</p>
+                            </li>
+                        ))}
+                      </ul>
+                  ) : (
+                      <p>No diaries found for this date.</p>
+                  )}
                 </div>
+
+                {/* Emotion Records */}
                 <div className="popup-content">
                   {Object.keys(emotionRecords).length > 0 ? (
-                      <ul className="emotion-list">
+                      <ul>
                         {Object.entries(emotionRecords).map(([emotion, value]) => (
-                            <li key={emotion} className="emotion-item">
-                              <span className="emojis">{getEmotionEmojis({ [emotion]: value })}</span>
-                              <span>{emotion}: {value}</span>
+                            <li key={emotion}>
+                              <span>{emotion}</span>: {(value || 0).toFixed(2)}
                             </li>
                         ))}
                       </ul>
@@ -273,24 +208,16 @@ const MyCalendar = ({ user, onLogout }) => {
                       <p>No emotion records available</p>
                   )}
                 </div>
+
                 <div className="popup-chart">
                   <Line data={chartData} />
                 </div>
+
                 <div className="popup-actions">
-                  <button
-                      className="recommend-button"
-                      onClick={() =>
-                          navigate("/recommendations", { state: { emotionType: majorEmotion } })
-                      }
-                  >
+                  <button onClick={() => navigate("/recommendations")}>
                     음악 추천
                   </button>
-                  <button
-                      className="diary-button"
-                      onClick={() =>
-                          navigate("/write", { state: { date: selectedDate } })
-                      }
-                  >
+                  <button onClick={() => navigate("/write", { state: { date: selectedDate } })}>
                     일기 작성
                   </button>
                 </div>

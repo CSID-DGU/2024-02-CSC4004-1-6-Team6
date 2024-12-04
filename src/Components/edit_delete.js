@@ -29,7 +29,7 @@ const DiaryEditor = ({ diaryData, user }) => {
         }
 
         try {
-            const response = await fetch(`/api/diary/${diaryId}`, {
+            const response = await fetch(`http://localhost:3000//api/diary/${diaryId}`, {
                 method: "PUT", // 수정 요청
                 headers: {
                     "Content-Type": "application/json",
@@ -66,7 +66,7 @@ const DiaryEditor = ({ diaryData, user }) => {
         }
 
         try {
-            const response = await fetch(`/api/diary/${diaryId}`, {
+            const response = await fetch(`http://localhost:3000//api/diary/${diaryId}`, {
                 method: "DELETE",
             });
 
