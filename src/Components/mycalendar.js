@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useMemo } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -15,100 +14,112 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { useNavigate } from "react-router-dom";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const MyCalendar = ({ user, onLogout }) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [calendarEvents, setCalendarEvents] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(location.state?.date || null);
-  const [showPopup, setShowPopup] = useState(location.state?.showPopup || false);
-  const [emotionRecords, setEmotionRecords] = useState({});
-  const [formattedSelectedDate, setFormattedSelectedDate] = useState("");
-  const [majorEmotion, setMajorEmotion] = useState(null);
-  const [diaryEntries, setDiaryEntries] = useState([]);
-  const [filteredDiaries, setFilteredDiaries] = useState([]);
+const MyCalendar = ({ user, diaryEntries, emotionData, setEmotionData, setDiaryEntries }) => {
+  const [selectedDate, setSelectedDate] = React.useState(null);
+  const [showPopup, setShowPopup] = React.useState(false);
+  const [filteredDiaries, setFilteredDiaries] = React.useState([]);
+  const [emotionRecords, setEmotionRecords] = React.useState({});
+  const [formattedSelectedDate, setFormattedSelectedDate] = React.useState("");
+  const [calendarEvents, setCalendarEvents] = React.useState([]); // 상태 초기화
+  const navigate = useNavigate(); // 컴포넌트 내부에 추가
+
 
   useEffect(() => {
-    async function fetchDiaryData() {
-      try {
-        const response = await fetch(`http://localhost:8080/api/diary/${user.username}`);
-        if (response.ok) {
-          const data = await response.json();
-          setDiaryEntries(data.data || []);
-        } else {
-          console.error("Failed to fetch diary data");
+    // Fetch diary entries if not already loaded
+    if (diaryEntries.length === 0) {
+      const fetchDiaryData = async () => {
+        try {
+          const response = await fetch(`http://localhost:8080/api/diary/${user.username}`);
+          if (response.ok) {
+            const data = await response.json();
+            setDiaryEntries(data.data || []);
+          } else {
+            console.error("Failed to fetch diary data");
+          }
+        } catch (error) {
+          console.error("Error fetching diary data:", error);
         }
-      } catch (error) {
-        console.error("Error fetching diary data:", error);
-      }
+      };
+      fetchDiaryData();
     }
+  }, [user.username, diaryEntries, setDiaryEntries]);
 
-    fetchDiaryData();
-  }, [user.username]);
-
-  useEffect(() => {
-    async function fetchEmotionData() {
-      try {
-        const response = await fetch(`http://localhost:8080/api/diary-emotion/all/${user.username}`);
-        if (response.ok) {
-          const data = await response.json();
-          const events = data.map((item) => ({
-            title: getEmotionEmojis({
-              happiness: item.happiness,
-              sadness: item.sadness,
-              anger: item.anger,
-              fear: item.fear,
-              surprise: item.surprise,
-              disgust: item.disgust,
-            }),
-            start: item.created_at.split("T")[0],
-          }));
-          setCalendarEvents(events);
-        } else {
-          console.error("Failed to fetch emotion data");
-        }
-      } catch (error) {
-        console.error("Error fetching emotion data:", error);
-      }
-    }
-
-    fetchEmotionData();
-  }, [user.username]);
-
-  const analyzeEmotion = (emotions) => {
-    const entries = Object.entries(emotions);
-    const maxEntry = entries.reduce((max, current) =>
-        current[1] > max[1] ? current : max
-    );
-    return maxEntry[1] > 0 ? maxEntry[0] : "Neutral";
+  const getEmotionEmojis = (emotions) => {
+    const emotionMap = {
+      happiness: "😊",
+      sadness: "😢",
+      anger: "😡",
+      fear: "😨",
+      surprise: "😲",
+      disgust: "🤢",
+    };
+    return Object.entries(emotions)
+        .filter(([_, value]) => value > 0)
+        .map(([emotion]) => emotionMap[emotion] || "🤔")
+        .join(" ");
   };
 
   const handleDateClick = (info) => {
-    const dateStr = info.dateStr;
-    setSelectedDate(dateStr);
+    const date = info.dateStr;
+    setSelectedDate(date);
 
-    const formattedDate = new Date(dateStr).toLocaleDateString("en-US", {
+    const formattedDate = new Date(date).toLocaleDateString("en-US", {
       month: "long",
       day: "numeric",
     });
     setFormattedSelectedDate(formattedDate);
 
     const diariesForDate = diaryEntries.filter((entry) =>
-        entry.created_at.startsWith(dateStr)
+        entry.created_at.startsWith(date)
     );
     setFilteredDiaries(diariesForDate);
+
+    if (diariesForDate.length > 0) {
+      // Fetch emotion data for the first diary entry of the selected date
+      const diaryId = diariesForDate[0].id;
+      const fetchEmotionData = async () => {
+        try {
+          const response = await fetch(`http://localhost:8080/api/diary-emotion/${diaryId}`);
+          if (response.ok) {
+            const result = await response.json();
+            setEmotionRecords(result.data || {});
+            setEmotionData((prev) => [...prev, result.data]); // Update shared emotion data
+          } else {
+            console.error("Failed to fetch emotion data");
+          }
+        } catch (error) {
+          console.error("Error fetching emotion data:", error);
+        }
+      };
+      fetchEmotionData();
+    }
 
     setShowPopup(true);
   };
 
-  const closePopup = () => {
-    setShowPopup(false);
-    setSelectedDate(null);
-    setEmotionRecords({});
-    setFilteredDiaries([]);
+  const handleDelete = async (diaryId) => {
+    if (!window.confirm("정말로 이 일기를 삭제하시겠습니까?")) {
+      return;
+    }
+    try {
+      const response = await fetch(`http://localhost:8080/api/diary/${diaryId}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        alert("일기가 삭제되었습니다!");
+        setDiaryEntries((prev) => prev.filter((entry) => entry.id !== diaryId));
+        setFilteredDiaries((prev) => prev.filter((entry) => entry.id !== diaryId));
+        setShowPopup(false);
+      } else {
+        console.error("Failed to delete diary.");
+      }
+    } catch (error) {
+      console.error("Error deleting diary:", error);
+    }
   };
 
   const chartData = useMemo(() => ({
@@ -145,20 +156,11 @@ const MyCalendar = ({ user, onLogout }) => {
     ],
   }), [emotionRecords]);
 
-  const getEmotionEmojis = (emotions) => {
-    const emotionMap = {
-      happiness: "😊",
-      sadness: "😢",
-      anger: "😡",
-      fear: "😨",
-      surprise: "😲",
-      disgust: "🤢",
-    };
-
-    return Object.entries(emotions)
-        .filter(([_, value]) => value > 0)
-        .map(([emotion]) => emotionMap[emotion] || "🤔")
-        .join(" ");
+  const closePopup = () => {
+    setShowPopup(false);
+    setSelectedDate(null);
+    setFilteredDiaries([]);
+    setEmotionRecords({});
   };
 
   return (
@@ -167,59 +169,29 @@ const MyCalendar = ({ user, onLogout }) => {
             plugins={[dayGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
             events={calendarEvents}
-            dateClick={(info) => handleDateClick(info)}
+            dateClick={handleDateClick}
         />
-
         {showPopup && (
             <div className="popup-overlay">
               <div className="popup">
-                <button className="popup-close-btn" onClick={closePopup}>
-                  ✕
-                </button>
-                <h2 className="popup-date">{formattedSelectedDate}</h2>
-
-                {/* Display Diaries */}
-                <div className="popup-diaries">
-                  {filteredDiaries.length > 0 ? (
-                      <ul>
-                        {filteredDiaries.map((entry, index) => (
-                            <li key={index}>
-                              <h3>{entry.title}</h3>
-                              <p>{entry.content}</p>
-                            </li>
-                        ))}
-                      </ul>
-                  ) : (
-                      <p>No diaries found for this date.</p>
-                  )}
-                </div>
-
-                {/* Emotion Records */}
-                <div className="popup-content">
-                  {Object.keys(emotionRecords).length > 0 ? (
-                      <ul>
-                        {Object.entries(emotionRecords).map(([emotion, value]) => (
-                            <li key={emotion}>
-                              <span>{emotion}</span>: {(value || 0).toFixed(2)}
-                            </li>
-                        ))}
-                      </ul>
-                  ) : (
-                      <p>No emotion records available</p>
-                  )}
-                </div>
-
+                <button className="popup-close-btn" onClick={closePopup}>✕</button>
+                <h2>{formattedSelectedDate}</h2>
+                {filteredDiaries.length > 0 ? (
+                    filteredDiaries.map((entry) => (
+                        <div key={entry.id}>
+                          <h3>{entry.title}</h3>
+                          <p>{entry.content}</p>
+                          <button onClick={() => navigate("/write", { state: { diaryId: entry.id } })}>
+                            수정
+                          </button>
+                          <button onClick={() => handleDelete(entry.id)}>삭제</button>
+                        </div>
+                    ))
+                ) : (
+                    <p>No diaries found for this date.</p>
+                )}
                 <div className="popup-chart">
                   <Line data={chartData} />
-                </div>
-
-                <div className="popup-actions">
-                  <button onClick={() => navigate("/recommendations")}>
-                    음악 추천
-                  </button>
-                  <button onClick={() => navigate("/write", { state: { date: selectedDate } })}>
-                    일기 작성
-                  </button>
                 </div>
               </div>
             </div>

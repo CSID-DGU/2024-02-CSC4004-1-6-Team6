@@ -4,9 +4,7 @@ import Login from "./Components/login";
 import MyCalendar from "./Components/mycalendar";
 import MusicRecommendation from "./Components/MusicRecommendation";
 import EmotionGraph from "./Components/EmotionGraph";
-import EmotionManagement from "./Components/EmotionManagement";
 import Write from "./Components/write";
-import EditDelete from "./Components/edit_delete";
 import Signup from "./Components/Signup";
 
 function App() {
@@ -53,12 +51,8 @@ function App() {
               path="/emotion-graph"
               element={<EmotionGraph />}
             />
-            <Route
-              path="/emotion-management"
-              element={<EmotionManagement />}
-            />
+
             <Route path="/write" element={<Write user={user} />} />
-            <Route path="/edit-delete" element={<EditDelete user={user} />} />
           </>
         ) : (
           // 인증되지 않은 사용자가 접근하면 로그인 화면으로 리다이렉트

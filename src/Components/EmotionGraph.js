@@ -14,73 +14,96 @@ import "../Styles/EmotionGraph.css";
 const EmotionGraph = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { date } = location.state || {}; // MyCalendar에서 넘어온 데이터
+    const { diaryId } = location.state || {}; // MyCalendar에서 넘어온 diaryId 전달
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchEmotionData = async () => {
-            try {
-                // 날짜 기반으로 백엔드에서 데이터 가져오기
-                const response = await fetch(`http://localhost:3000//api/diary-emotion/?date=${date}`);
-                if (response.ok) {
-                    const result = await response.json();
-                    const formattedData = Object.entries(result).map(
-                        ([emotion, value]) => ({
-                            emotion, // 감정 이름
-                            value, // 감정 값
-                        })
-                    );
-                    setData(formattedData);
-                } else {
-                    const error = await response.json();
-                    setError(error.message);
-                }
-            } catch (error) {
-                setError("데이터 로드 중 오류 발생");
-            } finally {
-                setLoading(false);
-            }
-        };
+    // 주요 감정을 계산하는 함수
+    const analyzeEmotion = (emotionData) => {
+        if (!emotionData) return "unknown";
 
-        if (date) {
-            fetchEmotionData();
-        } else {
-            setError("날짜가 선택되지 않았습니다.");
-            setLoading(false);
-        }
-    }, [date]);
-
-     // 주요 감정을 분석하는 함수
-     const analyzeEmotion = () => {
-        if (!data || data.length === 0) return "unknown";
-
-        // 감정 합계를 계산
-        const emotionSums = data.reduce((acc, record) => {
-            Object.entries(record.emotions).forEach(([emotion, value]) => {
-                acc[emotion] = (acc[emotion] || 0) + value;
-            });
-            return acc;
-        }, {});
-
-        // 가장 높은 감정을 결정
-        const majorEmotion = Object.entries(emotionSums).reduce((max, entry) =>
-            entry[1] > max[1] ? entry : max
+        const majorEmotion = Object.entries(emotionData).reduce((max, current) =>
+            current[1] > max[1] ? current : max
         )[0];
 
+        console.log("Major emotion analyzed:", majorEmotion); // 로그 추가
         return majorEmotion; // 주요 감정 반환
     };
 
+    // 감정 데이터 가져오기 함수
+    const fetchEmotionData = async (url, errorMessage) => {
+        try {
+            console.log("Fetching emotion data from URL:", url); // 로그 추가
+            const response = await fetch(url);
+            if (response.ok) {
+                const jsonData = await response.json();
+                console.log("Fetched data:", jsonData); // 로그 추가
+                return jsonData;
+            } else {
+                const error = await response.json();
+                console.error("API responded with error:", error); // 로그 추가
+                throw new Error(error.message || errorMessage);
+            }
+        } catch (err) {
+            console.error("Error during fetch:", err.message); // 로그 추가
+            throw new Error(err.message || errorMessage);
+        }
+    };
+
+    useEffect(() => {
+        const loadEmotionData = async () => {
+            if (!diaryId) {
+                console.warn("No diary ID provided."); // 로그 추가
+                setError("일기 ID가 제공되지 않았습니다.");
+                setLoading(false);
+                return;
+            }
+
+            console.log("Loading emotion data for diary ID:", diaryId); // 로그 추가
+            try {
+                const result = await fetchEmotionData(
+                    `http://localhost:8080/api/diary-emotion/${diaryId}`,
+                    "감정 데이터를 불러오는 중 오류가 발생했습니다."
+                );
+
+                console.log("Formatting emotion data for graph:", result); // 로그 추가
+                const formattedData = [
+                    { emotion: "happiness", value: result.happiness },
+                    { emotion: "sadness", value: result.sadness },
+                    { emotion: "anger", value: result.anger },
+                    { emotion: "fear", value: result.fear },
+                    { emotion: "surprise", value: result.surprise },
+                    { emotion: "disgust", value: result.disgust },
+                ];
+                setData(formattedData);
+                console.log("Formatted data set to state:", formattedData); // 로그 추가
+            } catch (err) {
+                console.error("Error while loading emotion data:", err.message); // 로그 추가
+                setError(err.message);
+            } finally {
+                setLoading(false);
+                console.log("Loading state set to false."); // 로그 추가
+            }
+        };
+
+        loadEmotionData();
+    }, [diaryId]);
+
     // 감정 관리로 이동
     const handleEmotionManagement = () => {
-        const majorEmotion = analyzeEmotion(); // 주요 감정 분석
-        navigate("/emotion-management", { state: { emotionType: majorEmotion } }); // 주요 감정 전달
+        console.log("Analyzing major emotion from data:", data); // 로그 추가
+        const majorEmotion = analyzeEmotion(
+            data.reduce((acc, { emotion, value }) => ({ ...acc, [emotion]: value }), {})
+        );
+        console.log("Navigating to emotion management page with major emotion:", majorEmotion); // 로그 추가
+        navigate("/emotion-management", { state: { emotionType: majorEmotion } });
     };
 
     // 닫기 버튼 핸들러
     const handleClose = () => {
-        navigate("/calendar"); // MyCalendar로 돌아가기
+        console.log("Navigating back to calendar."); // 로그 추가
+        navigate("/calendar");
     };
 
     return (
@@ -94,7 +117,7 @@ const EmotionGraph = () => {
                 </button>
             </div>
             <h2 className="graph-title">
-                {date ? `${date}의 감정 그래프` : "장기적 감정 그래프"}
+                {diaryId ? `${diaryId}의 감정 그래프` : "장기적 감정 그래프"}
             </h2>
             {loading ? (
                 <p>데이터를 불러오는 중입니다...</p>
